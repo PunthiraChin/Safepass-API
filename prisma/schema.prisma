@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @db.VarChar(50) @unique
+  password String? @db.VarChar(256)
+  googleId String? @db.VarChar(256)
+  walletAddress String? @db.VarChar(50)
+  firstName String? @db.VarChar(50)
+  lastName String? @db.VarChar(50)
+  role Role 
+  transactions Transaction[]
+}
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+model Event {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(50) @unique
+  details String @db.Text
+  organizer String @db.VarChar(50)
+  coverImage String @db.VarChar(256)
+  profileImage String @db.VarChar(256)
+  seatMapImage String @db.VarChar(256)
+  contractAddress String @db.VarChar(50)
+  startDateTime DateTime @db.Timestamp(0)
+  endDateTime DateTime @db.Timestamp(0)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @db.Timestamp(0)
+  ticketTypes Tickettype[]
+  transactions Transaction[]
+}
+model Tickettype {
+  id Int @id @default(autoincrement())
+  eventId Int 
+  event Event @relation(fields: [eventId],references: [id])
+  name String @db.VarChar(50)
+  details String @db.VarChar(50)
+  maximumSeat Int 
+  remainingSeat Int
+  ticketImage String @db.VarChar(256)
+  price Decimal @db.Decimal(10,2)
+  transactions Transaction[]
+}
+model Transaction {
+  id Int @id @default(autoincrement())
+  userId String
+  user User @relation(fields:[userId],references:[id])
+  eventId Int 
+  event Event @relation(fields: [eventId],references: [id])
+  ticketTypeId Int
+  ticketType Tickettype @relation(fields:[ticketTypeId],references:[id])
+  ticketAmount Int 
+  nftIds Nft[]
+  txnStatus Txnstatus
+  totalPrice Decimal @db.Decimal(10,2)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @db.Timestamp(0)
+}
+
+model Nft {
+  id Int @id @default(autoincrement())
+  tokenId Int 
+  openSeaUrl String? @db.VarChar(256)
+  txnId Int
+  transaction Transaction @relation(fields:[txnId],references:[id])
+}
+enum Txnstatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+
