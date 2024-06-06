@@ -16,11 +16,11 @@ const userData = [
     role: "CUSTOMER",
   },
 ];
-// add ticket type ไปพร้อมๆ กันเลยกับแต่ละ event
 const eventData = {
   name: "EVENT1",
   details: "The biggest concert to celebrate 10 year anniversary of our band",
   organizer: "BigRoom",
+  avenue: "Impact Arena, Muang Thong Thani",
   coverImage:
     "https://aqua-mobile-bandicoot-440.mypinata.cloud/ipfs/Qmd1CgUKiTVKwKt28TWxtSnc1aBjsYn9kVTQQfZdb4UiQB",
   profileImage:
@@ -64,7 +64,7 @@ const eventData = {
 };
 
 const run = async () => {
-  //   await prisma.user.createMany({ data: userData });
+  await prisma.user.createMany({ data: userData });
   await prisma.event.create({ data: eventData });
 };
 

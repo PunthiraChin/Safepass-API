@@ -33,6 +33,7 @@ model Event {
   name String @db.VarChar(50) @unique
   details String @db.Text
   organizer String @db.VarChar(50)
+  avenue String @db.VarChar(50)
   coverImage String @db.VarChar(256)
   profileImage String @db.VarChar(256)
   seatMapImage String @db.VarChar(256)
