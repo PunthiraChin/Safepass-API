@@ -1,0 +1,10 @@
+exports.USER_ROLE = {
+  CUSTOMER: "CUSTOMER",
+  ADMIN: "ADMIN",
+};
+
+exports.TXN_STATUS = {
+  PENDING: "PENDING",
+  SUCCESS: "SUCCESS",
+  FAILED: "FAILED",
+};
