@@ -8,4 +8,6 @@ adminRouter.get(
   authenticate.admin,
   adminController.getEventById
 );
+adminRouter.post("/events", authenticate.admin, adminController.createNewEvent);
+
 module.exports = adminRouter;

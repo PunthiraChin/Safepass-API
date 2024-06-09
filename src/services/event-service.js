@@ -32,4 +32,7 @@ eventService.updateRemainingTicket = async (
     where: { id: ticketTypeId },
   });
 };
+
+eventService.createNewEventAndTicketType = (eventAndTicketTypeData) =>
+  prisma.event.create({ data: eventAndTicketTypeData });
 module.exports = eventService;

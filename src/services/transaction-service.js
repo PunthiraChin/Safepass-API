@@ -14,4 +14,20 @@ transactionService.getTransactionById = (txnId) =>
     where: { id: txnId },
     include: { nftIds: true },
   });
+// อาจจะเลือกมาเฉพาะ ข้อมูลจาก event กับ tickettype ที่เราอยากได้ ไม่ต้องให้ join มาทุกๆ column
+// transactionService.getAllTransactionsByUserId = (userId) =>
+//   prisma.transaction.findMany({
+//     where: { userId: userId },
+//     include: { event: true, ticketType: true },
+//   });
+transactionService.getAllTransactionsByUserId = (userId) =>
+  prisma.transaction.findMany({
+    where: { userId: userId },
+    include: {
+      event: { select: { name: true } },
+      ticketType: { select: { name: true, price: true } },
+      nftIds: { select: { openSeaUrl: true } },
+    },
+  });
+
 module.exports = transactionService;
