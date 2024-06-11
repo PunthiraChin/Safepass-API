@@ -32,6 +32,7 @@ model Event {
   id Int @id @default(autoincrement())
   name String @db.VarChar(50) @unique
   details String @db.Text
+  artist String @db.Text
   organizer String @db.VarChar(50)
   avenue String @db.VarChar(50)
   coverImage String @db.VarChar(256)

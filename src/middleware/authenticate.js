@@ -4,7 +4,6 @@ const userService = require("../services/user-service");
 const createError = require("../utils/create-error");
 
 const authenticate = {};
-
 authenticate.customer = async (req, res, next) => {
   try {
     // 1. check if bearer token exists
@@ -52,4 +51,25 @@ authenticate.admin = async (req, res, next) => {
     next(err);
   }
 };
+authenticate.any = async (req, res, next) => {
+  try {
+    // 1. check if bearer token exists
+    const authorization = req.headers.authorization;
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      createError({ message: "unauthorized", statusCode: 401 });
+    }
+    // 2. check if valid bearer token
+    const token = authorization.split(" ")[1];
+    // jwt returns payload or error(>> enters catch block)
+    const payload = jwtService.verify(token); // {email, role}
+    const userData = await userService.findUserByEmail(payload.email);
+    // 3. return user data
+    req.user = userData;
+    next();
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
 module.exports = authenticate;

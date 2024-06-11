@@ -16,7 +16,6 @@ userController.getUserProfile = async (req, res, next) => {
 };
 userController.getUserTransaction = async (req, res, next) => {
   try {
-    console.log("in user Controller - get transaction");
     const userId = req.user.id;
     const userTransactionArr =
       await transactionService.getAllTransactionsByUserId(userId);

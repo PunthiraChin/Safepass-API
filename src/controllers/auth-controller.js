@@ -28,7 +28,6 @@ authController.register = async (req, res, next) => {
     // 3. เอา user ไป register ในระบบ
     const registerResult = await userService.createNewUser(userData);
     console.log("Register result", registerResult);
-
     res.status(200).json({ message: "register successful" });
   } catch (err) {
     console.log(err);
@@ -44,7 +43,7 @@ authController.login = async (req, res, next) => {
     if (!userData) {
       return createError({
         statusCode: 401,
-        message: "Incorrect user",
+        message: "Invalid Credentials",
       });
     }
     // 2. check if password exists >> compare password to hashpassword
@@ -54,7 +53,7 @@ authController.login = async (req, res, next) => {
         userData.password
       );
       if (!isPasswordMatch) {
-        return createError({ statusCode: 401, message: "Incorrect Password" });
+        return createError({ statusCode: 401, message: "Invalid Credentials" });
       }
     }
     // 3. compare success >> create JWT token and return Token to user
@@ -65,6 +64,17 @@ authController.login = async (req, res, next) => {
     } else if (userData.role === USER_ROLE.ADMIN) {
       res.status(200).json({ accessToken, role: "ADMIN" });
     }
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+authController.getMe = async (req, res, next) => {
+  try {
+    const userEmail = req.user.email;
+    const userProfile = await userService.findUserByEmail(userEmail);
+    delete userProfile.password;
+    res.status(200).json({ userProfile });
   } catch (err) {
     console.log(err);
     next(err);
