@@ -2,9 +2,9 @@ const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-const password = bcrypt.hashSync("123456Abcd!");
-const startDateTime = new Date("2024-06-10 18:00:00").toISOString();
-const endDateTime = new Date("2024-06-10 24:00:00").toISOString();
+const password = bcrypt.hashSync("123456Aa");
+const startDateTime = new Date("2024-06-20 18:00:00").toISOString();
+const endDateTime = new Date("2024-06-20 24:00:00").toISOString();
 
 const userData = [
   { email: "a@gmail.com", password: password, role: "ADMIN" },
@@ -17,6 +17,12 @@ const userData = [
   },
   {
     email: "d@gmail.com",
+    password: password,
+    googleId: "123456",
+    role: "CUSTOMER",
+  },
+  {
+    email: "mild@gmail.com",
     password: password,
     googleId: "123456",
     role: "CUSTOMER",
@@ -569,7 +575,7 @@ const ticketTypeData = [
 ];
 
 const run = async () => {
-  // await prisma.user.createMany({ data: userData });
+  await prisma.user.createMany({ data: userData });
   await prisma.event.createMany({ data: eventData });
   await prisma.tickettype.createMany({ data: ticketTypeData });
 };

@@ -63,7 +63,7 @@ transactionController.completeTransaction = async (req, res, next) => {
     for (let tokenId in arrOfTokenId) {
       let nftData = {};
       nftData.txnId = txnId;
-      nftData.openSeaUrl = `https://testnets.opensea.io/${eventContractAddress}/${tokenId}`;
+      nftData.openSeaUrl = `https://testnets.opensea.io/assets/amoy/${eventContractAddress}/${tokenId}`;
       nftData.tokenId = +tokenId;
       const result = await nftService.createNftRecord(nftData);
       createdNFT.push(result);

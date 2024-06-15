@@ -20,7 +20,7 @@ userController.getUserTransaction = async (req, res, next) => {
     const userTransactionArr =
       await transactionService.getAllTransactionsByUserId(userId);
     console.log("user transaction", userTransactionArr);
-    res.status(200).json({ userTransactionArr });
+    res.status(200).json(userTransactionArr);
   } catch (err) {
     console.log(err);
     next(err);
