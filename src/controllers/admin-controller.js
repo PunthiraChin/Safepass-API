@@ -27,14 +27,10 @@ adminController.getEventById = async (req, res, next) => {
 adminController.createNewEvent = async (req, res, next) => {
   try {
     // req.user = userData; จะได้ข้อมูลของ admin มา
-    // req.body คือรับข้อมูลที่ user กรอกมาจากหน้า frontend ที่เป็น text data
-    // ค่าที่ส่งมา จะเป็น string ทั้งหมดนะ ต้อง convert กลับไปเป็นข้อมูลที่เราต้องการ e.g. array, object, number
+    // req.body คือรับข้อมูลที่ user กรอกมาจากหน้า frontend ที่เป็น text data * ค่าที่ส่งมา จะเป็น string ทั้งหมดนะ ต้อง convert กลับไปเป็นข้อมูลที่เราต้องการ e.g. array, object, number
     // req.files จะมีข้อมูล file ต่างๅ ที่ส่งเข้ามาจาก
     const uploadedFile = req.files;
     // upload file ขึ้น cloudniary แล้วเอา response กลับมา
-    // เตรียม data เพื่อ create new event to database
-    // เอาค่า input จาก form ที่เป็น text มาก่อน โดยต้องแปลงค่าจาก string เป็นค่าที่้เราต้องการ
-
     const promises = [];
     // upload ภาพทั้งหมดพร้อมๆ กัน แต่รอ result ให้เสร็จทั้งหมดแล้วค่อยไปบรรทัดถัดไป
     if (req.files.coverImage) {
@@ -58,12 +54,11 @@ adminController.createNewEvent = async (req, res, next) => {
     }
     const result = await Promise.all(promises); // [{'url';'xxx',"key":"xxx"}, {'url';'xxx',"key":"xxx"},'url';'xxx',"key":"xxx"}]
     console.log("result from cloudinary upload", result);
-    // res.status(200).json(result);
+    // เอาข้อมูล url ที่ upload บน cloudinary มาเก็บใน array แล้ว
     const cloudinaryImageUrlObj = result.reduce((acc, item) => {
       acc[item.key] = item.url;
       return acc;
     }, {});
-    // เอาข้อมูล url ที่ upload บน cloudinary มาเก็บใน array แล้ว
     // ==========================================
     console.log("Request Body", req.body);
     // เอา ticket types object ออกมาก่อน เพื่อทำเป็น arr of object แล้วยัดค่าใส่่กลับเข้าไปใน data อีกที
@@ -76,7 +71,6 @@ adminController.createNewEvent = async (req, res, next) => {
       }
     }
     console.log("Final Tickettype array", ticketTypeArr);
-    // req.body.ticketTypes = [...ticketTypeArr];
     console.log("request body- tickettypes", req.body.ticketTypes);
     const eventAndTicketTypeData = Object.assign(
       cloudinaryImageUrlObj,
@@ -89,15 +83,14 @@ adminController.createNewEvent = async (req, res, next) => {
     eventAndTicketTypeData.startDateTime = newStartDateTime;
     eventAndTicketTypeData.endDateTime = newEndDateTime;
     delete eventAndTicketTypeData;
-
     delete eventAndTicketTypeData.ticketTypes;
     // Create new event only
     const createEventResult = await eventService.createEvent(
       eventAndTicketTypeData
     );
     console.log("create event result", createEventResult); // ได้ eventId ออกมา
-    // เพิ่มค่า event ID เข้าไปให้แต่ละ array object ก่อน
     // Create new ticket types based on the created event
+    // เพิ่มค่า event ID เข้าไปให้แต่ละ array object ก่อน
     const eventId = createEventResult.id;
     const ticketTypeData = ticketTypeArr.map((ticketTypeObj) => {
       ticketTypeObj.maximumSeat = +ticketTypeObj.maximumSeat;
@@ -110,11 +103,6 @@ adminController.createNewEvent = async (req, res, next) => {
       ticketTypeData
     );
     console.log("create ticket type", createTicketTypeResult);
-    // create new event to database
-    // const createNewEventResult = await eventService.createNewEventAndTicketType(
-    //   eventAndTicketTypeData
-    // );
-    // console.log("createNewEventResult", eventAndTicketTypeData);
     res.status(200).json({ createEventResult, createTicketTypeResult });
   } catch (err) {
     console.log(err);
@@ -153,10 +141,98 @@ adminController.deleteEventById = async (req, res, next) => {
     console.log("Error from delete event", err);
   }
 };
-adminController.editEvent = async (req, res, next) => {
+adminController.editEventAndTicketType = async (req, res, next) => {
+  // 1. ต้องเอา request body ออกมาจัดการแตกออกมาก่อน
+  // จะ reuse feature เดิมของการ create new event แต่ว่า ต้องแยกการ update event กับการ update ticketType ออกเป็น 2 step เพราะว่า ต้องระบุ ticketTypeId และ loop over array ให้ครบ
   try {
-    await eventService.editEventById(eventId.data);
-    res.status(200).json({ message: "In editing event" });
+    // req.user = userData; จะได้ข้อมูลของ admin มา
+    // req.body คือรับข้อมูลที่ user กรอกมาจากหน้า frontend ที่เป็น text data * ค่าที่ส่งมา จะเป็น string ทั้งหมดนะ ต้อง convert กลับไปเป็นข้อมูลที่เราต้องการ e.g. array, object, number
+    // req.files จะมีข้อมูล file ต่างๅ ที่ส่งเข้ามาจาก
+    const uploadedFile = req.files;
+    console.log("Uploaded File", uploadedFile);
+    // upload file ขึ้น cloudniary แล้วเอา response กลับมา
+    const promises = [];
+    // upload ภาพทั้งหมดพร้อมๆ กัน แต่รอ result ให้เสร็จทั้งหมดแล้วค่อยไปบรรทัดถัดไป
+    if (req.files.coverImage) {
+      const result = uploadService
+        .upload(req.files.coverImage[0].path)
+        .then((url) => ({ url, key: "coverImage" }));
+      promises.push(result);
+      // เอาค่า URL จาก cloudinary เข้าไป update ที่ req.body เพื่อรอ update เข้า database
+    }
+    if (req.files.profileImage) {
+      const result = uploadService
+        .upload(req.files.profileImage[0].path)
+        .then((url) => ({ url, key: "profileImage" }));
+      promises.push(result);
+    }
+    if (req.files.seatMapImage) {
+      const result = uploadService
+        .upload(req.files.seatMapImage[0].path)
+        .then((url) => ({ url, key: "seatMapImage" }));
+      promises.push(result);
+    }
+    const result = await Promise.all(promises); // [{'url';'xxx',"key":"xxx"}, {'url';'xxx',"key":"xxx"},'url';'xxx',"key":"xxx"}]
+    console.log("result from cloudinary upload", result);
+    // เอาข้อมูล url ที่ upload บน cloudinary มาเก็บใน array แล้ว
+    const cloudinaryImageUrlObj = result.reduce((acc, item) => {
+      acc[item.key] = item.url;
+      return acc;
+    }, {});
+    // ==========================================
+    console.log("Request Body", req.body);
+    // เอา ticket types object ออกมาก่อน เพื่อทำเป็น arr of object แล้วยัดค่าใส่่กลับเข้าไปใน data อีกที
+    const ticketTypeObj = req.body.ticketTypes;
+    console.log("ticketTypeObj", ticketTypeObj);
+    const ticketTypeArr = [];
+    for (let key in ticketTypeObj) {
+      if (key !== "") {
+        ticketTypeArr.push(ticketTypeObj[key]);
+      }
+    }
+    console.log("Final Tickettype array", ticketTypeArr);
+    console.log("request body- tickettypes", req.body.ticketTypes);
+    const eventAndTicketTypeData = Object.assign(
+      cloudinaryImageUrlObj,
+      req.body
+    );
+    console.log("eventAndTicketTypeData", eventAndTicketTypeData);
+    // convert datetime to correct format
+    newStartDateTime = convertDateTime(eventAndTicketTypeData.startDateTime);
+    newEndDateTime = convertDateTime(eventAndTicketTypeData.endDateTime);
+    eventAndTicketTypeData.startDateTime = newStartDateTime;
+    eventAndTicketTypeData.endDateTime = newEndDateTime;
+    delete eventAndTicketTypeData;
+    delete eventAndTicketTypeData.ticketTypes;
+
+    // Edit event only
+    const editEventResult = await eventService.editEventById(
+      eventId,
+      eventAndTicketTypeData
+    );
+    console.log("Edit event result", editEventResult); // ได้ eventId ออกมา
+    // Edit ticket types based on the created event
+    // เพิ่มค่า event ID เข้าไปให้แต่ละ array object ก่อน - โดยที่ต้องมี ticketTypeId อยุ่ด้วย
+    const eventId = editEventResult.id;
+    const ticketTypeData = ticketTypeArr.map((ticketTypeObj) => {
+      ticketTypeObj.maximumSeat = +ticketTypeObj.maximumSeat;
+      ticketTypeObj.remainingSeat = +ticketTypeObj.remainingSeat;
+      ticketTypeObj.price = +ticketTypeObj.price;
+      ticketTypeObj.eventId = eventId;
+      ticketTypeObj.id = id
+      return ticketTypeObj;
+    });
+    // ต้องวน loop update ticketType details เข้าไปใหม่ให้ครบ - จริงๆ ควรต้องใช้ Promise all เพื่อ confirm success มั้ย?
+    for (let eachTicketTypeData of ticketTypeData) {
+      let ticketTypeId = eachTicketTypeData.id;
+      await eventService.createNewTicketType(ticketTypeId, eachTicketTypeData);
+    }
+
+    // const editTicketTypeResult = await eventService.createNewTicketType(
+    //   ticketTypeData
+    // );
+    // console.log("create ticket type", createTicketTypeResult);
+    res.status(200).json({ message: "Update Event success" });
   } catch (err) {
     console.log("error from editing event", err);
   }

@@ -1,3 +1,4 @@
+const { tickettype } = require("../models/prisma");
 const prisma = require("../models/prisma");
 const eventService = {};
 
@@ -45,3 +46,5 @@ eventService.deleteEventById = (eventId) =>
 
 eventService.editEventById = (eventId, data) =>
   prisma.event.update({ data: data, where: { id: eventId } });
+eventService.editTicketTypeById = (ticketTypeId, data) =>
+  prisma.tickettype.update({ data: data, where: { id: ticketTypeId } });

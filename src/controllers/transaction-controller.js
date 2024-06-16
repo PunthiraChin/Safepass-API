@@ -29,6 +29,12 @@ transactionController.createTransaction = async (req, res, next) => {
     const txnCreateResult = await transactionService.createTransaction(
       txnInitiatingData
     );
+    // get TicketType details กลับไปให้กับ Front end เพื่อไปใช้งานต่อด้วย โดยเอา ticketTypeId ไปเรียกต่อ
+    const ticketTypeDetails = await eventService.getTicketDetailsById(
+      txnCreateResult.ticketTypeId
+    );
+    txnCreateResult.ticketTypeDetails = ticketTypeDetails;
+
     const updateRemainingTicket = await eventService.updateRemainingTicket(
       req.body.ticketTypeId,
       req.body.ticketAmount
@@ -41,26 +47,30 @@ transactionController.createTransaction = async (req, res, next) => {
     next(err);
   }
 };
-transactionController.completeTransaction = async (req, res, next) => {
+transactionController.updateTransaction = async (req, res, next) => {
   try {
     const txnId = +req.body.txnId;
     const eventId = +req.params.eventId;
+    const txnStatus = req.body.txnStatus;
     // 1. Update transaction status to completed and create ticket minting ID
-    const updateTxnResult = await transactionService.updateCompleteTransaction(
-      txnId
+    console.log("Request body for update txn status", txnStatus);
+    const updateTxnResult = await transactionService.updateTxnStatus(
+      txnId,
+      txnStatus
     );
     console.log("updateTxnResult", updateTxnResult);
-
+    // ถ้า txn status เป็น faild >> response กลับเลย ไม่สร้าง NFT ต่อ
+    if (txnStatus === TXN_STATUS.FAILED) {
+      return res.status(200).json(updateTxnResult);
+    }
     // 2. Create NFT records ตามจำนวน NFT ที่เข้ามา โดยใช้ ArrOfToken
     // inputData = txnId, tokenId, openseaUrl (contractAddress/tokenId)
     const eventDetails = await eventService.getEventById(eventId);
     console.log("eventDetails", eventDetails);
     let eventContractAddress = eventDetails.contractAddress;
     const arrOfTokenId = req.body.arrOfTokenId;
-
-    console.log("arrOfTokenID", typeof arrOfTokenId);
     let createdNFT = [];
-    for (let tokenId in arrOfTokenId) {
+    for (let tokenId of arrOfTokenId) {
       let nftData = {};
       nftData.txnId = txnId;
       nftData.openSeaUrl = `https://testnets.opensea.io/assets/amoy/${eventContractAddress}/${tokenId}`;

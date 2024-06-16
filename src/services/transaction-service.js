@@ -4,9 +4,9 @@ const transactionService = {};
 
 transactionService.createTransaction = (data) =>
   prisma.transaction.create({ data: data });
-transactionService.updateCompleteTransaction = (txnId) =>
+transactionService.updateTxnStatus = (txnId, txnStatus) =>
   prisma.transaction.update({
-    data: { txnStatus: TXN_STATUS.SUCCESS },
+    data: { txnStatus: txnStatus },
     where: { id: txnId },
   });
 transactionService.getTransactionById = (txnId) =>

@@ -14,7 +14,7 @@ eventRouter.post(
 eventRouter.patch(
   "/:eventId/checkout",
   authenticate.customer,
-  transactionController.completeTransaction
+  transactionController.updateTransaction
 );
 eventRouter.get(
   "/:eventId/checkout/transaction/:txnId",

@@ -29,7 +29,7 @@ adminRouter.delete(
 adminRouter.put(
   "/events/:eventId",
   authenticate.admin,
-  adminController.editEvent
+  adminController.editEventAndTicketType
 );
 
 module.exports = adminRouter;

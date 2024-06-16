@@ -65,7 +65,7 @@ model Transaction {
   eventId Int 
   event Event @relation(fields: [eventId],references: [id],onDelete: Cascade)
   ticketTypeId Int
-  ticketType Tickettype @relation(fields:[ticketTypeId],references:[id])
+  ticketType Tickettype @relation(fields:[ticketTypeId],references:[id], onDelete: Cascade)
   ticketAmount Int 
   nftIds Nft[]
   txnStatus Txnstatus
@@ -79,7 +79,7 @@ model Nft {
   tokenId Int 
   openSeaUrl String? @db.VarChar(256)
   txnId Int
-  transaction Transaction @relation(fields:[txnId],references:[id])
+  transaction Transaction @relation(fields:[txnId],references:[id], onDelete: Cascade)
 }
 enum Txnstatus {
   PENDING
