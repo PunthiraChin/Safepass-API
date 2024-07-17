@@ -107,7 +107,6 @@ adminController.createNewEvent = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     next(err);
-    // }
   }
 };
 adminController.deleteEventById = async (req, res, next) => {
@@ -139,6 +138,7 @@ adminController.deleteEventById = async (req, res, next) => {
     res.status(200).json({ message: "Delete Event Successfully" });
   } catch (err) {
     console.log("Error from delete event", err);
+    next(err)
   }
 };
 adminController.editEventAndTicketType = async (req, res, next) => {
@@ -235,6 +235,7 @@ adminController.editEventAndTicketType = async (req, res, next) => {
     res.status(200).json({ message: "Update Event success" });
   } catch (err) {
     console.log("error from editing event", err);
+    next(err)
   }
 };
 module.exports = adminController;

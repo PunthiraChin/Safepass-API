@@ -2,6 +2,7 @@ const { TXN_STATUS } = require("../constants");
 const eventService = require("../services/event-service");
 const nftService = require("../services/nft-service");
 const transactionService = require("../services/transaction-service");
+const createError = require("../utils/create-error");
 
 const transactionController = {};
 
@@ -17,6 +18,10 @@ transactionController.createTransaction = async (req, res, next) => {
     const ticketDetails = await eventService.getTicketDetailsById(
       req.body.ticketTypeId
     );
+    // Condition to check if tickets are still available or not
+    if (ticketDetails.remainingSeat < req.body.ticketAmount) {
+      return createError({ statusCode: 402, message: "Tickets Are Sold Out" });
+    }
     const totalPrice = req.body.ticketAmount * ticketDetails.price;
     const txnInitiatingData = {
       userId: req.user.id,
@@ -26,6 +31,7 @@ transactionController.createTransaction = async (req, res, next) => {
       totalPrice: totalPrice,
       txnStatus: TXN_STATUS.PENDING,
     };
+
     const txnCreateResult = await transactionService.createTransaction(
       txnInitiatingData
     );
@@ -49,6 +55,7 @@ transactionController.createTransaction = async (req, res, next) => {
 };
 transactionController.updateTransaction = async (req, res, next) => {
   try {
+    console.log("Request Body", req.body);
     const txnId = +req.body.txnId;
     const eventId = +req.params.eventId;
     const txnStatus = req.body.txnStatus;
@@ -82,6 +89,7 @@ transactionController.updateTransaction = async (req, res, next) => {
     res.status(200).json({ createdNFT, txnId });
   } catch (err) {
     console.log(err);
+    next(err);
   }
 };
 transactionController.getTransactionDetailsById = async (req, res, next) => {
@@ -94,6 +102,7 @@ transactionController.getTransactionDetailsById = async (req, res, next) => {
     res.status(200).json({ transactionDetails });
   } catch (err) {
     console.log(err);
+    next(err);
   }
 };
 
