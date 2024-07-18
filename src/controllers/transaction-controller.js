@@ -2,6 +2,7 @@ const { TXN_STATUS } = require("../constants");
 const eventService = require("../services/event-service");
 const nftService = require("../services/nft-service");
 const transactionService = require("../services/transaction-service");
+const userService = require("../services/user-service");
 const createError = require("../utils/create-error");
 
 const transactionController = {};
@@ -56,9 +57,11 @@ transactionController.createTransaction = async (req, res, next) => {
 transactionController.updateTransaction = async (req, res, next) => {
   try {
     console.log("Request Body", req.body);
+    const userId = req.user.id;
     const txnId = +req.body.txnId;
     const eventId = +req.params.eventId;
     const txnStatus = req.body.txnStatus;
+    const walletAddress = req.body.walletAddress;
     // 1. Update transaction status to completed and create ticket minting ID
     console.log("Request body for update txn status", txnStatus);
     const updateTxnResult = await transactionService.updateTxnStatus(
@@ -66,7 +69,13 @@ transactionController.updateTransaction = async (req, res, next) => {
       txnStatus
     );
     console.log("updateTxnResult", updateTxnResult);
-    // ถ้า txn status เป็น faild >> response กลับเลย ไม่สร้าง NFT ต่อ
+    // Update wallet address data of user to be current wallet address data
+    const updateWalletAddressResult = await userService.updateUserWalletAddress(
+      userId,
+      walletAddress
+    );
+    console.log("update wallet address result", updateWalletAddressResult);
+    // ถ้า txn status เป็น failed >> response กลับเลย ไม่สร้าง NFT ต่อ
     if (txnStatus === TXN_STATUS.FAILED) {
       return res.status(200).json(updateTxnResult);
     }

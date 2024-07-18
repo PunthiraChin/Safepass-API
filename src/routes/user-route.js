@@ -13,6 +13,11 @@ userRouter.get(
   authenticate.customer,
   userController.getUserTransaction
 );
+userRouter.patch(
+  "/change-password",
+  authenticate.customer,
+  userController.changePassword
+);
 // แก้ไข profile ของ user
 // userRouter.patch("/:userId/profile")
 module.exports = userRouter;
