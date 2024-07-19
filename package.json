@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.js",
     "resetDB": "node prisma/resetDB.js",
-    "start": "node src/app.js"
+    "start": "node src/index.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
